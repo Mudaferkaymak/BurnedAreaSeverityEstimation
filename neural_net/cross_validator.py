@@ -260,14 +260,12 @@ class CrossValidator():
 
                 image = image.to(self.device)
                 mask = mask.to(self.device, dtype=mytype)
-        
+                
 
                 # Mask tensorunu 3 boyutlu yapmak için squeeze kullanın
                 if mask.dim() == 4 and mask.size(1) == 1:
                     mask = mask.squeeze(1)
                 
-                # Mask tensorunun boyutlarını tekrar kontrol et ve yazdır
-                print(f"Squeezed mask size: {mask.size()}")
 
                 optimizer.zero_grad()
                 outputs = model(image)
@@ -280,7 +278,7 @@ class CrossValidator():
 
                 # Doğruluk hesaplaması
                 _, predicted = torch.max(outputs, 1)
-                total += mask.numel()
+                total += mask.numel()  # toplam pixel sayısını ekliyoruz
                 correct += (predicted == mask).sum().item()
 
                 if idx % n_loss_print == (n_loss_print - 1):
@@ -305,6 +303,7 @@ class CrossValidator():
             print('Loading checkpoint because val_loss (%f) is higher than best_loss (%f)' % (val_loss, early_stop.best_loss))
             model.load_state_dict(torch.load(early_stop.save_path, map_location=self.device))
         return
+
 
 
 
@@ -337,6 +336,7 @@ class CrossValidator():
                 mask = mask.to(self.device, dtype=mytype)
                 
 
+
                 # Mask tensorunu 3 boyutlu yapmak için squeeze kullanın
                 if mask.dim() == 4 and mask.size(1) == 1:
                     mask = mask.squeeze(1)
@@ -348,7 +348,7 @@ class CrossValidator():
 
                 # Doğruluk hesaplaması
                 _, predicted = torch.max(outputs, 1)
-                total += mask.numel()
+                total += mask.numel()  # toplam pixel sayısını ekliyoruz
                 correct += (predicted == mask).sum().item()
 
                 if performance_eval_func is not None:
@@ -381,8 +381,6 @@ class CrossValidator():
                 mse = sq_err / counters
             return cm, mse
         return running_loss
-
-
 
 
 
