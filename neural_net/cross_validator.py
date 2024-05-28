@@ -245,128 +245,143 @@ class CrossValidator():
         return result
 
     def _train(self, model, criterion, optimizer, train_loader, test_loader, performance_eval_func, n_loss_print=1, scheduler=None, early_stop=None):
-      for epoch in range(self.epochs):
-          
-          running_loss = 0.0
-          epoch_loss = 0.0
-          model.train()
-      
-          mytype = torch.float32 if isinstance(criterion, (nn.MSELoss, nn.BCEWithLogitsLoss)) else torch.long
+        for epoch in range(self.epochs):
+            
+            running_loss = 0.0
+            epoch_loss = 0.0
+            correct = 0
+            total = 0
+            model.train()
+        
+            mytype = torch.float32 if isinstance(criterion, (nn.MSELoss, nn.BCEWithLogitsLoss)) else torch.long
 
-          for idx, data in enumerate(train_loader):
-              image, mask = data['image'], data['mask']
+            for idx, data in enumerate(train_loader):
+                image, mask = data['image'], data['mask']
 
-              image = image.to(self.device)
-              mask = mask.to(self.device, dtype=mytype).squeeze(1)
-              
-              # Mask tensorunun boyutlarını kontrol et ve yazdır
-              print(f"Original mask size: {mask.size()}")
+                image = image.to(self.device)
+                mask = mask.to(self.device, dtype=mytype)
+        
 
-              # Mask tensorunu 3 boyutlu yapmak için squeeze kullanın
-              if mask.dim() == 4 and mask.size(1) == 1:
-                  mask = mask.squeeze(1)
-              
-              # Mask tensorunun boyutlarını tekrar kontrol et ve yazdır
-              print(f"Squeezed mask size: {mask.size()}")
+                # Mask tensorunu 3 boyutlu yapmak için squeeze kullanın
+                if mask.dim() == 4 and mask.size(1) == 1:
+                    mask = mask.squeeze(1)
+                
+                # Mask tensorunun boyutlarını tekrar kontrol et ve yazdır
+                print(f"Squeezed mask size: {mask.size()}")
 
-              optimizer.zero_grad()
-              outputs = model(image)
-              loss = criterion(outputs, mask)
-              loss.backward()
-              optimizer.step()
+                optimizer.zero_grad()
+                outputs = model(image)
+                loss = criterion(outputs, mask)
+                loss.backward()
+                optimizer.step()
 
-              running_loss += loss.item()
-              epoch_loss += loss.item()
+                running_loss += loss.item()
+                epoch_loss += loss.item()
 
-              if idx % n_loss_print == (n_loss_print - 1):
-                  print('[%d, %5d] losssss: %f' % (epoch + 1, idx + 1, running_loss / n_loss_print))
-                  running_loss = 0.0
+                # Doğruluk hesaplaması
+                _, predicted = torch.max(outputs, 1)
+                total += mask.numel()
+                correct += (predicted == mask).sum().item()
 
-          val_loss = self._validate(model, criterion, test_loader, performance_eval_func, early_stop=early_stop)
-          if scheduler is not None:
-              if isinstance(scheduler, optim.lr_scheduler.ReduceLROnPlateau):
-                  scheduler.step(val_loss)
-              else:
-                  scheduler.step()
+                if idx % n_loss_print == (n_loss_print - 1):
+                    print('[%d, %5d] loss: %f' % (epoch + 1, idx + 1, running_loss / n_loss_print))
+                    running_loss = 0.0
 
-          if early_stop is not None and early_stop.early_stop:
-              print('Terminating training...')
-              break
+            accuracy = 100 * correct / total
+            print(f'Train accuracy: {accuracy}%')
 
-      if early_stop is not None and (early_stop.early_stop or early_stop.best_loss < val_loss):
-          print('Loading checkpoint because val_loss (%f) is higher than best_loss (%f)' % (val_loss, early_stop.best_loss))
-          model.load_state_dict(torch.load(early_stop.save_path, map_location=self.device))
-      return
+            val_loss = self._validate(model, criterion, test_loader, performance_eval_func, early_stop=early_stop)
+            if scheduler is not None:
+                if isinstance(scheduler, optim.lr_scheduler.ReduceLROnPlateau):
+                    scheduler.step(val_loss)
+                else:
+                    scheduler.step()
+
+            if early_stop is not None and early_stop.early_stop:
+                print('Terminating training...')
+                break
+
+        if early_stop is not None and (early_stop.early_stop or early_stop.best_loss < val_loss):
+            print('Loading checkpoint because val_loss (%f) is higher than best_loss (%f)' % (val_loss, early_stop.best_loss))
+            model.load_state_dict(torch.load(early_stop.save_path, map_location=self.device))
+        return
+
 
 
 
     def _validate(self, model, criterion, loader, performance_eval_func, compute_results: bool=False, compute_cm=True, early_stop=None):
-      model.eval()
-      running_loss = 0.0
+        model.eval()
+        running_loss = 0.0
+        correct = 0
+        total = 0
 
-      if performance_eval_func is not None and hasattr(performance_eval_func, 'reset'):
-          performance_eval_func.reset()
+        if performance_eval_func is not None and hasattr(performance_eval_func, 'reset'):
+            performance_eval_func.reset()
 
-      cm = None
-      mse = None
-      if compute_results:
-          if compute_cm:
-              cm = np.zeros((len(self.mask_intervals), len(self.mask_intervals)))
-          if self.is_regression:
-              sq_err = np.zeros(len(self.mask_intervals) + 1)
-              counters = np.zeros(len(self.mask_intervals) + 1)
+        cm = None
+        mse = None
+        if compute_results:
+            if compute_cm:
+                cm = np.zeros((len(self.mask_intervals), len(self.mask_intervals)))
+            if self.is_regression:
+                sq_err = np.zeros(len(self.mask_intervals) + 1)
+                counters = np.zeros(len(self.mask_intervals) + 1)
 
-      mytype = torch.float32 if isinstance(criterion, nn.MSELoss) or isinstance(criterion, nn.BCEWithLogitsLoss) else torch.long
+        mytype = torch.float32 if isinstance(criterion, nn.MSELoss) or isinstance(criterion, nn.BCEWithLogitsLoss) else torch.long
 
-      with torch.no_grad():
-          for idx, data in enumerate(loader):
-              image, mask = data['image'], data['mask']
+        with torch.no_grad():
+            for idx, data in enumerate(loader):
+                image, mask = data['image'], data['mask']
 
-              image = image.to(self.device)
-              mask = mask.to(self.device, dtype=mytype)
-              
-              # Mask tensorunun boyutlarını kontrol et ve yazdır
-              print(f"Original mask size: {mask.size()}")
+                image = image.to(self.device)
+                mask = mask.to(self.device, dtype=mytype)
+                
 
-              # Mask tensorunu 3 boyutlu yapmak için squeeze kullanın
-              if mask.dim() == 4 and mask.size(1) == 1:
-                  mask = mask.squeeze(1)
-              
-              # Mask tensorunun boyutlarını tekrar kontrol et ve yazdır
-              print(f"Squeezed mask size: {mask.size()}")
+                # Mask tensorunu 3 boyutlu yapmak için squeeze kullanın
+                if mask.dim() == 4 and mask.size(1) == 1:
+                    mask = mask.squeeze(1)
+                
 
-              outputs = model(image)
-              loss = criterion(outputs, mask)
-              running_loss += loss.item()
+                outputs = model(image)
+                loss = criterion(outputs, mask)
+                running_loss += loss.item()
 
-              if performance_eval_func is not None:
-                  performance_eval_func(outputs, mask)
+                # Doğruluk hesaplaması
+                _, predicted = torch.max(outputs, 1)
+                total += mask.numel()
+                correct += (predicted == mask).sum().item()
 
-              if compute_results:
-                  if self.is_regression:
-                      tmp_sq_err, tmp_counters = compute_squared_errors(outputs, mask, len(self.mask_intervals))
-                      sq_err += tmp_sq_err
-                      counters += tmp_counters
-                      if compute_cm:
-                          rounded_outputs = outputs.clamp(min=0, max=(len(self.mask_intervals) - 1)).round()
-                          cm += self._compute_cm(rounded_outputs, mask)
-                  else:
-                      if compute_cm:
-                          cm += self._compute_cm(outputs, mask)
+                if performance_eval_func is not None:
+                    performance_eval_func(outputs, mask)
 
-          if performance_eval_func is not None and hasattr(performance_eval_func, 'last'):
-              performance_eval_func.last()
+                if compute_results:
+                    if self.is_regression:
+                        tmp_sq_err, tmp_counters = compute_squared_errors(outputs, mask, len(self.mask_intervals))
+                        sq_err += tmp_sq_err
+                        counters += tmp_counters
+                        if compute_cm:
+                            rounded_outputs = outputs.clamp(min=0, max=(len(self.mask_intervals) - 1)).round()
+                            cm += self._compute_cm(rounded_outputs, mask)
+                    else:
+                        if compute_cm:
+                            cm += self._compute_cm(outputs, mask)
 
-          print('Validation running loss: %f' % running_loss)
+            if performance_eval_func is not None and hasattr(performance_eval_func, 'last'):
+                performance_eval_func.last()
 
-      if early_stop is not None:
-          early_stop(running_loss, model)
+            print('Validation running loss: %f' % running_loss)
+            accuracy = 100 * correct / total
+            print(f'Validation accuracy: {accuracy}%')
 
-      if compute_results:
-          if self.is_regression:
-              mse = sq_err / counters
-          return cm, mse
-      return running_loss
+        if early_stop is not None:
+            early_stop(running_loss, model)
+
+        if compute_results:
+            if self.is_regression:
+                mse = sq_err / counters
+            return cm, mse
+        return running_loss
+
 
 
 
