@@ -1,0 +1,161 @@
+/* style.css */
+body {
+    background-color: #f0f2f6;
+}
+
+h1 {
+    color: #ffffff;
+    text-align: center;
+    font-size: 60px;
+}
+
+.stButton button {
+    background-color: #34dbca;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    padding: 10px 20px;
+    cursor: pointer;
+}
+
+.stButton button:hover {
+    background-color: #2980b9;
+}
+
+.stFileUploader {
+    background-color: #2980b9;
+    font-size: 18px;
+    font-weight: bold;
+    color: #2c3e50;
+}
+
+.st-emotion-cache-1y4p8pa {
+    width: 100%;
+    padding: 6rem 1rem 10rem;
+    max-width: 46rem;
+    background-color: #07744a;
+}
+
+p, ol, ul, dl {
+    margin: 0px 0px 1rem;
+    padding: 0px;
+    font-size: 1rem;
+    font-weight: 400;
+    color: #ffffff;
+}
+
+.st-al {
+    color: rgb(255, 255, 255);
+    background-color: #749f8f;
+}
+
+.st-br {
+    color: #749f8f;
+    background-color: #749f8f;
+}
+
+.st-emotion-cache-18ni7ap {
+    position: fixed;
+    top: 0px;
+    left: 0px;
+    right: 0px;
+    height: 2.875rem;
+    background: #07744a;
+    outline: none;
+    z-index: 999990;
+    display: block;
+}
+
+.st-emotion-cache-1r4qj8v {
+    position: absolute;
+    background: #07744a;
+    color: rgb(49, 51, 63);
+    inset: 0px;
+    color-scheme: light;
+    overflow: hidden;
+}
+
+.st-emotion-cache-1wbqy5l {
+    display: flex;
+    gap: 0.5rem;
+    -webkit-box-align: center;
+    align-items: center;
+    line-height: 0.9rem;
+    color: rgb(255, 255, 255);
+}
+
+.st-emotion-cache-1r4qj8v {
+    position: absolute;
+    background: #07744a;
+    color: rgb(49, 51, 63);
+    inset: 0px;
+    color-scheme: light;
+    overflow: hidden;
+    color: rgb(255, 255, 255);
+}
+
+
+
+.st-emotion-cache-1pbsqtx {
+    vertical-align: middle;
+    overflow: hidden;
+    color: inherit;
+    fill: currentcolor;
+    display: inline-flex;
+    -webkit-box-align: center;
+    align-items: center;
+    font-size: 1.25rem;
+    width: 1.25rem;
+    height: 1.25rem;
+    flex-shrink: 0;
+    color: rgb(255, 255, 255);
+    background: #07744a;
+}
+
+.st-emotion-cache-fqsvsg {
+    list-style-type: none;
+    margin-bottom: 0px;
+    color: rgb(255, 255, 255);
+    background: #07744a;
+}
+
+.st-emotion-cache-1r4qj8v {
+    position: absolute;
+    background: rgb(255, 255, 255);
+    color: rgb(49, 51, 63);
+    inset: 0px;
+    color-scheme: light;
+    overflow: hidden;
+    color: rgb(255, 255, 255);
+    background: #07744a;
+}
+
+.st-emotion-cache-1b0udgb{
+    width: 443.52px;
+    color: rgb(255, 255, 255);
+    background: #07744a;
+} 
+
+.st-emotion-cache-klqnuk {
+    font-size: 14px;
+    color: rgb(255, 255, 255);
+    text-transform: uppercase;
+    margin: 0px 0px 0px 1rem;
+    white-space: nowrap;
+    max-width: 20rem;
+    transition: opacity 200ms ease-out 0s, clip 200ms ease-out 0s, min-width 200ms ease-out 0s, max-width 200ms ease-out 0s, padding 200ms ease-out 0s;
+    background-color: #07744a;
+}
+
+.st-emotion-cache-1y4p8pa {
+    width: 100%;
+    padding: 6rem 1rem 10rem;
+    max-width: 70rem;
+}
+
+.st-emotion-cache-eqffof p {
+    word-break: break-word;
+    font-size: 13px;
+    line-height: 0.65;
+    
+}
