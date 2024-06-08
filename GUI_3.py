@@ -11,8 +11,9 @@ import aspose.words as aw
 import rasterio
 import os
 from matplotlib.colors import ListedColormap
-
+import time
 from PIL import Image
+import datetime
 
 def create_accuracy_image(grayscale_image_path, rgba_image_path, output_image_path):
     # Load images
@@ -96,7 +97,8 @@ def main():
     if not file:
         st.info("Lütfen tiff uzantılı orijinal görselinizi ve maske görselinizi opsiyonel bir şekilde yükleyiniz!")
         return
-
+    print(f"Original image has been uploaded. Time: {datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
+    startTime = time.time()
     file_name = file.name
     mask_file_name = mask_file.name if mask_file else None
 
@@ -155,7 +157,7 @@ def main():
 
     # Modeli yükle
     model = UNet(n_channels=12, n_classes=4, act='relu')
-    model.load_state_dict(torch.load("C:\\Users\\LENOVO\\Downloads\\learningRate.pt", map_location=torch.device('cpu')))
+    model.load_state_dict(torch.load('limev1.pt', map_location=torch.device('cpu')))
     model.eval()
 
     # Görüntüyü model ile işle
@@ -272,7 +274,8 @@ def main():
                 orange = orange.resize((10, 10))  # Genişlik 300, yükseklik 200 piksel olarak yeniden boyutlandır
                 st.image(orange)
                 #st.write("    ")
-                
+        maskEndtime = time.time()
+        print(f"All outputs sent to frontend in {maskEndtime - startTime} seconds. Time: {datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")  
     else:
         col1, col2 = st.columns(2)
         with col1:
@@ -305,7 +308,8 @@ def main():
                 red = Image.open("Colors/Kirmizi.jpg")
                 red = red.resize((10, 10))  # Genişlik 300, yükseklik 200 piksel olarak yeniden boyutlandır
                 st.image(red)
-
+        outmaskendtime = time.time()
+        print(f"Model output sent to frontend in {outmaskendtime - startTime} seconds. Time: {datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")       
 
 
 if __name__ == "__main__":
