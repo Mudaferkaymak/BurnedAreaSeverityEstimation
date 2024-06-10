@@ -11,9 +11,8 @@ import aspose.words as aw
 import rasterio
 import os
 from matplotlib.colors import ListedColormap
-import time
+
 from PIL import Image
-import datetime
 
 def create_accuracy_image(grayscale_image_path, rgba_image_path, output_image_path):
     # Load images
@@ -97,8 +96,7 @@ def main():
     if not file:
         st.info("Lütfen tiff uzantılı orijinal görselinizi ve maske görselinizi opsiyonel bir şekilde yükleyiniz!")
         return
-    print(f"Original image has been uploaded. Time: {datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
-    startTime = time.time()
+
     file_name = file.name
     mask_file_name = mask_file.name if mask_file else None
 
@@ -157,7 +155,7 @@ def main():
 
     # Modeli yükle
     model = UNet(n_channels=12, n_classes=4, act='relu')
-    model.load_state_dict(torch.load('limev1.pt', map_location=torch.device('cpu')))
+    model.load_state_dict(torch.load("C:\\Users\\LENOVO\\Downloads\\Lime_Focal_All.pt", map_location=torch.device('cpu')))
     model.eval()
 
     # Görüntüyü model ile işle
@@ -168,11 +166,10 @@ def main():
 
     # Çıktı tensöründen sadece bir kanalı al
     output_single_channel = predicted_classes[0].cpu().numpy()
-    colors = ['white', 'orange', 'brown', 'red']
+    colors = ['white', 'blue', 'yellow', 'red']
     cmap = ListedColormap(colors)
 
     # Görüntüyü 4 sınıflı renk haritası ile göster
-
     plt.imsave('ornektorchOut_multiclass.png', output_single_channel, cmap=cmap)
 
     unique, counts = np.unique(output_single_channel, return_counts=True)
@@ -186,7 +183,14 @@ def main():
     # İlk anahtarı haricindekileri al
     other_class = {key: value for key, value in class_counts.items() if key != firs_class}
     class_sum = sum(other_class.values())
+    
+    # Sınıfların yüzdelerini hesapla
     class_percent = {key: round((value / class_sum) * 100, 1) for key, value in other_class.items()}
+
+    # Eksik anahtarlar için varsayılan değer ekle
+    for key in range(1, 4):
+        if key not in class_percent:
+            class_percent[key] = 0.0
 
     if mask_file:
         create_accuracy_image(mask_file_name, 'ornektorchOut_multiclass.png', 'output_pixel_values.png')
@@ -195,16 +199,10 @@ def main():
         with col1:
             st.image(rgb_composite_gn, caption='Orijinal Görsel', use_column_width=True)
 
-        
         with col2:
             mask_image = io.imread(mask_file_name)
             st.image(mask_image, caption='Maske Görseli', use_column_width=True)
             coll1, coll2, coll3 = st.columns([1,1,2])
-            #with coll3:
-            #   st.write("    ")
-            #   st.write(f"  %{class_percent[1]}")
-            #   st.write(f"  %{class_percent[2]}")
-            #   st.write(f"  %{class_percent[3]}")
             with coll3:
                 st.write("    ")
                 st.write(f"Düşük")
@@ -213,15 +211,13 @@ def main():
             with coll2:
                 st.write("    ")
                 white = Image.open("Colors/KoyuGri.jpg")
-                white = white.resize((10, 10))  # Genişlik 300, yükseklik 200 piksel olarak yeniden boyutlandır
+                white = white.resize((10, 10))
                 st.image(white)
-                #st.write("    ")
                 orange = Image.open("Colors/AGri.jpg")
-                orange = orange.resize((10, 10))  # Genişlik 300, yükseklik 200 piksel olarak yeniden boyutlandır
+                orange = orange.resize((10, 10))
                 st.image(orange)
-                #st.write("    ")
                 red = Image.open("Colors/Beyaz.jpg")
-                red = red.resize((10, 10))  # Genişlik 300, yükseklik 200 piksel olarak yeniden boyutlandır
+                red = red.resize((10, 10))
                 st.image(red)
             
         with col3:
@@ -239,48 +235,36 @@ def main():
                 st.write(f"Yüksek")
             with coll2:
                 st.write("    ")
-                white = Image.open("Colors/Turuncu.png")
-                white = white.resize((10, 10))  # Genişlik 300, yükseklik 200 piksel olarak yeniden boyutlandır
+                white = Image.open("Colors/Mavi.jpg")
+                white = white.resize((10, 10))
                 st.image(white)
-                #st.write("    ")
-                orange = Image.open("Colors/Kahverengi.jpg")
-                orange = orange.resize((10, 10))  # Genişlik 300, yükseklik 200 piksel olarak yeniden boyutlandır
+                orange = Image.open("Colors/sari.jpg")
+                orange = orange.resize((10, 10))
                 st.image(orange)
-                #st.write("    ")
                 red = Image.open("Colors/Kirmizi.jpg")
-                red = red.resize((10, 10))  # Genişlik 300, yükseklik 200 piksel olarak yeniden boyutlandır
+                red = red.resize((10, 10))
                 st.image(red)
 
         with col4:
             st.image(comparison, caption='Karşılaştırma Görseli', use_column_width=True)
             coll1, coll2, coll3 = st.columns([1, 1, 2])
-            #with coll3:
-            #   st.write("    ")
-            #   st.write(f"  %{class_percent[1]}")
-            #   st.write(f"  %{class_percent[2]}")
-            #   st.write(f"  %{class_percent[3]}")
             with coll3:
                 st.write("    ")
                 st.write(f"Eşleşen")
                 st.write(f"Eşleşmeyen")
-                #st.write(f"Yüksek")
             with coll2:
                 st.write("    ")
                 white = Image.open("Colors/yesil.jpg")
-                white = white.resize((10, 10))  # Genişlik 300, yükseklik 200 piksel olarak yeniden boyutlandır
+                white = white.resize((10, 10))
                 st.image(white)
-                #st.write("    ")
                 orange = Image.open("Colors/Kirmizi.jpg")
-                orange = orange.resize((10, 10))  # Genişlik 300, yükseklik 200 piksel olarak yeniden boyutlandır
+                orange = orange.resize((10, 10))
                 st.image(orange)
-                #st.write("    ")
-        maskEndtime = time.time()
-        print(f"All outputs sent to frontend in {maskEndtime - startTime} seconds. Time: {datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")  
+                
     else:
         col1, col2 = st.columns(2)
         with col1:
             st.image(rgb_composite_gn, caption='Orijinal Görsel', use_column_width=True)
-
 
         with col2:
             st.image(final_result, caption='Sonuç Görseli', use_column_width=True)
@@ -297,20 +281,15 @@ def main():
                 st.write(f"Yüksek")
             with coll2:
                 st.write("    ")
-                white = Image.open("Colors/Turuncu.png")
-                white = white.resize((10, 10))  # Genişlik 300, yükseklik 200 piksel olarak yeniden boyutlandır
+                white = Image.open("Colors/mavi.jpg")
+                white = white.resize((10, 10))
                 st.image(white)
-                #st.write("    ")
-                orange = Image.open("Colors/Kahverengi.jpg")
-                orange = orange.resize((10, 10))  # Genişlik 300, yükseklik 200 piksel olarak yeniden boyutlandır
+                orange = Image.open("Colors/sari.jpg")
+                orange = orange.resize((10, 10))
                 st.image(orange)
-                #st.write("    ")
                 red = Image.open("Colors/Kirmizi.jpg")
-                red = red.resize((10, 10))  # Genişlik 300, yükseklik 200 piksel olarak yeniden boyutlandır
+                red = red.resize((10, 10))
                 st.image(red)
-        outmaskendtime = time.time()
-        print(f"Model output sent to frontend in {outmaskendtime - startTime} seconds. Time: {datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")       
-
 
 if __name__ == "__main__":
     main()
